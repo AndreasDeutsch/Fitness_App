@@ -2,21 +2,22 @@ from datetime import date
 
 from pydantic import BaseModel
 
+from typing import List
 # User Schema
 
 
 class Base(BaseModel):
-    username: str
-    birthday: date
-
+    firstname: str
+    lastname: str
+    email: str
 
 class Register(Base):
-    password: str
-
+    password_hash: str
 
 class Password(BaseModel):
     password: str
 
+class Full(Base):
+    user_id: int
 
-class Birthday(BaseModel):
-    birthday: date
+

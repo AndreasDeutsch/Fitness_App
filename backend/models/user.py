@@ -1,23 +1,27 @@
 from datetime import datetime
 
-from sqlalchemy import Column, VARCHAR, DATE, DateTime
-
+from sqlalchemy import Column, VARCHAR, DATE, DateTime, UniqueConstraint, INTEGER
+from sqlalchemy.orm import relationship
 from database.config import Base
 
 
-# Create User class
 class UserModels(Base):
     __tablename__ = "users"
-    username = Column(VARCHAR, unique=True, primary_key=True)
-    password = Column(VARCHAR)
-    birthday = Column(DATE)
-    create_time = Column(DateTime, default=datetime.utcnow())
-    last_login = Column(DateTime, default=datetime.utcnow())
-
-    def __init__(self, username: str, password: str, birthday: datetime):
-        self.username = username
-        self.password = password
-        self.birthday = birthday
+    user_id = Column(INTEGER, primary_key=True, autoincrement=True)
+    firstname = Column(VARCHAR)
+    lastname = Column(VARCHAR)
+    email = Column(VARCHAR, unique=True)
+    password_hash = Column(VARCHAR)
+    exercises = relationship("ExerciseModels", back_populates="user")
+    workouts = relationship("WorkoutModels", back_populates="user")
+    
+    def __init__(self, firstname: str, lastname: str, email: str, password_hash: str):
+        self.firstname = firstname
+        self.lastname = lastname
+        self.email = email
+        self.password_hash = password_hash
 
     def __repr__(self) -> str:
-        return f"<UserModels(username={self.username}, password={self.password}, birthday={self.birthday})>"
+        return f"<UserModels(fistname={self.firstname}, lastname={self.lastname}, email={self.email})>"
+    
+
