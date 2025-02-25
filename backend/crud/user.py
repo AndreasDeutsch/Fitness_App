@@ -21,17 +21,19 @@ class UserCRUD:
         user = result.scalars().first()
         return user
 
-    async def get_users(self) -> List[user_schema.Base]:
+    async def get_users(self) -> List[user_schema.Full]:
         stmt = select(UserModels)
         result = await self.db_session.execute(stmt)
         users = result.scalars().all()
+        print(users)
         return users
 
-    async def create_user(self, user: user_schema.Register) -> user_schema.Base:
+    async def create_user(self, user: user_schema.Register) -> user_schema.Full:
         db_user = UserModels(
-            username=user.username,
-            password=get_password_hash(user.password),
-            birthday=user.birthday,
+            firstname=user.firstname,
+            lastname=user.lastname,
+            password_hash=get_password_hash(user.password),
+            email=user.email
         )
         self.db_session.add(db_user)
         await self.db_session.commit()

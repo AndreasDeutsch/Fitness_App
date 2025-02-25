@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, VARCHAR, DATE, DateTime, UniqueConstraint, INTEGER, FLOAT
+from sqlalchemy import Column, VARCHAR, DATE, DateTime, UniqueConstraint, INTEGER, FLOAT, ForeignKey
 from sqlalchemy.orm import relationship
 from database.config import Base
 
@@ -11,8 +11,9 @@ class SetModels(Base):
     weight = Column(FLOAT)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    exercise_id = Column(INTEGER, foreign_key=True)
+    exercise_id = Column(INTEGER, ForeignKey("exercises.exercise_id"))
     exercise = relationship("ExerciseModels", back_populates="sets")
+    workout_spots = relationship("WorkoutSpotModels", back_populates="set")
     
     def __init__(self, reps: int, weight: float, start_time: datetime, end_time: datetime, exercise_id: int):
         self.reps = reps

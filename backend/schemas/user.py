@@ -12,7 +12,7 @@ class Base(BaseModel):
     email: str
 
 class Register(Base):
-    password_hash: str
+    password: str
 
 class Password(BaseModel):
     password: str

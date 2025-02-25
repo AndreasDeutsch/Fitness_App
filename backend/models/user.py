@@ -23,5 +23,5 @@ class UserModels(Base):
 
     def __repr__(self) -> str:
         return f"<UserModels(fistname={self.firstname}, lastname={self.lastname}, email={self.email})>"
-    
+
 

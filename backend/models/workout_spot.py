@@ -1,16 +1,17 @@
 from datetime import datetime
 
-from sqlalchemy import Column, VARCHAR, DATE, DateTime, UniqueConstraint, INTEGER
+from sqlalchemy import Column, VARCHAR, DATE, DateTime, UniqueConstraint, INTEGER, ForeignKey
 from sqlalchemy.orm import relationship
 from database.config import Base
 
 
 class WorkoutSpotModels(Base):
     __tablename__ = "workout_spots"
-    workout_spot_number = Column(int, primary_key=True)
-    workout_id = Column(INTEGER, primary_key=True, foreign_key=True)
-    set_id = Column(INTEGER, foreign_key=True)
+    workout_spot_number = Column(INTEGER, primary_key=True)
+    workout_id = Column(INTEGER, ForeignKey("workouts.workout_id"), primary_key=True)
+    set_id = Column(INTEGER, ForeignKey("sets.set_id"))
     workout = relationship("WorkoutModels", back_populates="workout_spots")
+    set = relationship("SetModels", back_populates="workout_spots")
     
     def __init__(self, workout_spot_number: int, workout_id: int, set_id: int):
         self.workout_spot_number = workout_spot_number
