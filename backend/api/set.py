@@ -7,27 +7,31 @@ from crud.dependencies import get_set_crud
 from crud.set import SetCRUD
 import schemas.set as set_schema
 
-router = APIRouter()
+router = APIRouter(prefix="/set", tags=["set"])
 
-@router.get("/sets", response_model=List[set_schema.Base])
+@router.get("", response_model=List[set_schema.Full])
 async def read_sets(skip: int = 0, limit: int = 10, db: SetCRUD = Depends(get_set_crud)):
     return await db.get_sets(skip=skip, limit=limit)
 
-@router.get("/sets/{set_id}", response_model=set_schema.Base)
-async def read_set(set_id: int):
-    set = await SetCRUD().get_set_by_id(set_id)
+@router.get("/{set_id}", response_model=set_schema.Full)
+async def read_set(set_id: int, db: SetCRUD = Depends(get_set_crud)):
+    set = await db.get_set_by_id(set_id)
     if set is None:
         raise HTTPException(status_code=404, detail="Set not found")
     return set
 
-@router.post("/sets", response_model=set_schema.Base)
-async def create_set(set: set_schema.Base):
-    return await SetCRUD().create_set(set)
+@router.post("", response_model=set_schema.CreateReturn)
+async def create_set(set: set_schema.Base, db: SetCRUD = Depends(get_set_crud)):
+    return await db.create_set(set)
 
-@router.delete("/sets/{set_id}", response_model=set_schema.Base)
-async def delete_set(set_id: int):
-    set = await SetCRUD().get_set_by_id(set_id)
+@router.post("/finish/", response_model=set_schema.Full)
+async def create_set(set: set_schema.Finish, db: SetCRUD = Depends(get_set_crud)):
+    return await db.finish_set(set)
+
+@router.delete("/{set_id}", response_model=set_schema.Full)
+async def delete_set(set_id: int, db: SetCRUD = Depends(get_set_crud)):
+    set = await db.get_set_by_id(set_id)
     if set is None:
         raise HTTPException(status_code=404, detail="Set not found")
-    await SetCRUD().delete_set(set_id)
+    await db.delete_set(set_id)
     return set

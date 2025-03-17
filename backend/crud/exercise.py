@@ -15,8 +15,8 @@ class ExerciseCRUD():
         self.db_session = db_session
 
 
-    async def get_exercises(self) -> List[exercise_schema.Base]:
-        stmt = select(ExerciseModels)
+    async def get_exercises(self, skip, limit) -> List[exercise_schema.Base]:
+        stmt = select(ExerciseModels).offset(skip).limit(limit)
         result = await self.db_session.execute(stmt)
         exercises = result.scalars().all()
         return exercises        

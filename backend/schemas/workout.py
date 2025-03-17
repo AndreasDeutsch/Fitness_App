@@ -5,6 +5,7 @@ from typing import Optional
 class Base(BaseModel):
     start_datetime: datetime
     user_id: int
+    name: str
 
 class WorkoutCreate(Base):
     pass

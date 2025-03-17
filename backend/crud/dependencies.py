@@ -5,7 +5,7 @@ from crud.user import UserCRUD
 from crud.workout import WorkoutCRUD
 from crud.exercise import ExerciseCRUD
 from crud.set import SetCRUD
-from crud.workout_spot import WorkoutSpotCRUD
+from crud.exercise_workout import ExerciseWorkoutCRUD
 
 
 
@@ -35,7 +35,7 @@ async def get_set_crud() -> Generator:
         async with session.begin():
             yield SetCRUD(session)
 
-async def get_workout_spot_crud() -> Generator:
+async def get_exercise_workout_crud() -> Generator:
     async with async_session() as session:
         async with session.begin():
-            yield WorkoutSpotCRUD(session)
+            yield ExerciseWorkoutCRUD(session)

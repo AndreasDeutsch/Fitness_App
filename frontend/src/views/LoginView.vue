@@ -3,8 +3,8 @@
         <div class="col-4 pt-6">
             <form>
                 <div class="form-group">
-                    <label for="usernameField">Username</label>
-                    <input v-model="form.username" type="text" class="form-control" id="usernameField">
+                    <label for="emailField">email</label>
+                    <input v-model="form.username" type="text" class="form-control" id="emailField">
                 </div>
                 <div class="form-group">
                     <label for="passwordField">Password</label>

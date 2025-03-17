@@ -29,10 +29,12 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = await create_access_token(data={"username": form_data.username})
-    refresh_token = await create_refresh_token(data={"username": form_data.username})
+    user = await db.get_user_by_email(email=form_data.username)
 
-    await db.update_user_login(username=form_data.username)
+    access_token = await create_access_token(data={"email": form_data.username})
+    refresh_token = await create_refresh_token(data={"email": form_data.username})
+
+    #await db.update_user_login(email=form_data.email)
     expired_time = (
         int(datetime.now(tz=timezone.utc).timestamp() * 1000)
         + timedelta(minutes=settings.access_token_expire_minutes).seconds * 1000
@@ -42,6 +44,17 @@ async def login(
         "refresh_token",
         refresh_token,
         httponly=True,
+        samesite="strict",
+        secure=False,
+        expires=timedelta(settings.refresh_token_expire_minutes),
+    )
+
+    print(user)
+
+    response.set_cookie(
+        "user_id",
+        user.user_id,
+        httponly=False,
         samesite="strict",
         secure=False,
         expires=timedelta(settings.refresh_token_expire_minutes),
@@ -112,4 +125,5 @@ async def refresh(
 @router.post("/logout")
 async def logout(response: Response):
     response.delete_cookie("refresh_token")
+    response.delete_cookie("user_id")
     return {"message": "Logout successfully"}

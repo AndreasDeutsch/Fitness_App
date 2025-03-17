@@ -21,7 +21,8 @@ class WorkoutCRUD:
         return workout
 
     async def get_workouts(self, skip: int = 0, limit: int = 10) -> List[workout_schema.Base]:
-        stmt = select(WorkoutModels).offset(skip).limit(limit)
+        #stmt = select(WorkoutModels).offset(skip).limit(limit).join(WorkoutModels.workout_spots)
+        stmt = select(WorkoutModels).offset(skip).limit(limit).order_by(WorkoutModels.start_datetime.desc())
         result = await self.db_session.execute(stmt)
         workouts = result.scalars().all()
         return workouts
@@ -29,7 +30,8 @@ class WorkoutCRUD:
     async def create_workout(self, workout: workout_schema.Base):
         db_workout = WorkoutModels(
             start_datetime=workout.start_datetime.replace(tzinfo=None),
-            user_id=workout.user_id
+            user_id=workout.user_id,
+            name=workout.name
         )
         self.db_session.add(db_workout)
         await self.db_session.commit()

@@ -8,8 +8,8 @@ class ExerciseModels(Base):
     exercise_id = Column(INTEGER, primary_key=True, autoincrement=True)
     name = Column(VARCHAR)
     user_id = Column(INTEGER, ForeignKey("users.user_id"))
-    sets = relationship("SetModels", back_populates="exercise")
     user = relationship("UserModels", back_populates="exercises")
+    exercise_workouts = relationship("ExerciseWorkoutModels", back_populates="exercise")
     
     def __init__(self, name: str, user_id: int):
         self.name = name

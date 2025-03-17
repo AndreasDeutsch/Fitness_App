@@ -5,6 +5,8 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import LogoutView from '../views/LogoutView.vue'
 import RefreshView from '../views/RefreshView.vue'
+import WorkoutView from '../views/WorkoutView.vue'
+import SpecificWorkoutView from '../views/SpecificWorkoutView.vue'
 import { useAuthStore } from '../store/auth'
 
 const routes = [
@@ -17,6 +19,11 @@ const routes = [
         path: '/register',
         name: 'Register',
         component: RegisterView,
+    },
+    {
+        path: '/workout',
+        name: 'Workout',
+        component: WorkoutView,
     },
     {
         path: '/login',
@@ -38,6 +45,12 @@ const routes = [
         path: '/refresh',
         name: 'Refresh',
         component: RefreshView,
+    },
+    {
+        path: '/specificworkout/:id',
+        name: 'SpecificWorkoutView',
+        component: SpecificWorkoutView,
+        props: true,
     },
 ]
 

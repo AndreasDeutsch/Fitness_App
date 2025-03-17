@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import user, auth, workout_spot, workout, set, exercise
+from api import user, auth, exercise_workout, workout, set, exercise
 from database.config import engine, database, Base
 
 
@@ -11,7 +11,7 @@ app.include_router(user.router, prefix="/api")
 app.include_router(workout.router, prefix="/api")
 app.include_router(set.router, prefix="/api")
 app.include_router(exercise.router, prefix="/api")
-app.include_router(workout_spot.router, prefix="/api")
+app.include_router(exercise_workout.router, prefix="/api")
 
 
 origins = [
