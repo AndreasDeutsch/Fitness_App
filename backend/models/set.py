@@ -21,3 +21,21 @@ class SetModels(Base):
         
     def __repr__(self) -> str:
         return f"<SetModels(reps={self.reps}, weight={self.weight}, start_time={self.start_time}, end_time={self.end_time}, exercise_id={self.exercise_id})>"
+
+
+    def to_dict(self):
+        return {
+            "set_id": self.set_id,
+            "reps": self.reps,
+            "weight": self.weight,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "exercise_workout_id": self.exercise_workout_id
+        }
+    
+    def to_dict_create_return(self):
+        return {
+            "set_id": self.set_id,
+            "start_time": self.start_time,
+            "exercise_workout_id": self.exercise_workout_id
+        }

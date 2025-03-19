@@ -22,3 +22,11 @@ class ExerciseWorkoutModels(Base):
         self.exercise_id = exercise_id
         self.workout_id = workout_id
         self.workout_spot_number = workout_spot_number
+
+    def to_dict(self):
+        return {
+            "exercise_workout_id": self.exercise_workout_id,
+            "workout_spot_number": self.workout_spot_number,
+            "workout_id": self.workout_id,
+            "exercise_id": self.exercise_id
+        }

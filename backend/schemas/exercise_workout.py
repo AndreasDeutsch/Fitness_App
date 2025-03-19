@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class Create(BaseModel):
     exercise_id: int
@@ -9,4 +9,4 @@ class Create(BaseModel):
 class Full(Create):
     exercise_workout_id: int
     workout_spot_number: int
-    sets: List
+    sets: Optional[List] = None

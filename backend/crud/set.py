@@ -35,8 +35,8 @@ class SetCRUD:
         )
         self.db_session.add(db_set)
         await self.db_session.commit()
-        await self.db_session.refresh(db_set)
-        return db_set
+        print(db_set.to_dict_create_return())
+        return db_set.to_dict_create_return()
 
     async def finish_set(self, data: set_schema.Finish) -> set_schema.Full:
         stmt = update(SetModels).where(SetModels.set_id == data.set_id).values(
@@ -45,9 +45,9 @@ class SetCRUD:
             weight=data.weight
         )
         await self.db_session.execute(stmt)
-        await self.db_session.commit()
         stmt = select(SetModels).where(SetModels.set_id == data.set_id)
         result = await self.db_session.execute(stmt)
+        await self.db_session.commit()
         updated_set = result.scalars().first()
         return updated_set
 
