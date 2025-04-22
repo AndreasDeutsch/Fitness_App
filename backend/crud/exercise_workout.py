@@ -46,10 +46,26 @@ class ExerciseWorkoutCRUD():
         stmt = select(ExerciseWorkoutModels).where(ExerciseWorkoutModels.workout_id == workout_id).options(joinedload(ExerciseWorkoutModels.sets)).offset(skip).limit(limit)
         result = await self.db_session.execute(stmt)
         exercise_workouts = result.unique().scalars().all()
+        active_time = 0
+        start_time = None
+        last_time = None
         exercise_workouts_dicts = []
         for exercise_workout in exercise_workouts:
+            active_time = 0
+            start_time = None
+            last_time = None
             exercise_workout_dict = exercise_workout.to_dict()
             exercise_workout_dict['sets'] = [set.to_dict() for set in exercise_workout.sets]
+            for set_dict in exercise_workout_dict['sets']:
+                if set_dict['start_time'] and set_dict['end_time']:
+                    if start_time is None or set_dict['start_time'] < start_time:
+                        start_time = set_dict['start_time']
+                    if last_time is None or set_dict['end_time'] > last_time:
+                        last_time = set_dict['end_time']
+                    active_time += (set_dict['end_time'] - set_dict['start_time']).total_seconds()
+            exercise_workout_dict["active_time"] = active_time
+            exercise_workout_dict["start_time"] = start_time.isoformat() if start_time else None
+            exercise_workout_dict["end_time"] = last_time.isoformat() if last_time else None
             exercise_workouts_dicts.append(exercise_workout_dict)
         return exercise_workouts_dicts
 

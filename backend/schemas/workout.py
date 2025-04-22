@@ -22,3 +22,10 @@ class Full(Base):
 
     class Config:
         orm_mode: True
+
+class WorkoutEnd(BaseModel):
+    workout_id: int
+    end_datetime: datetime
+
+    class Config:
+        orm_mode: True

@@ -17,7 +17,7 @@ async def get_exercise_workout_by_id(exercise_workout_id: int, db: ExerciseWorko
     return await db.get_exercise_workout_by_id(exercise_workout_id)
 
 @router.get("/workout/{workout_id}", response_model=List[exercise_workout_schema.Full])
-async def get_exercise_workouts_for_workout(workout_id: int, skip: int = 0, limit: int = 10, db: ExerciseWorkoutCRUD = Depends(get_exercise_workout_crud)):
+async def get_exercise_workouts_for_workout(workout_id: int, skip: int = 0, limit: int = 100, db: ExerciseWorkoutCRUD = Depends(get_exercise_workout_crud)):
     return await db.get_exercise_workouts_for_workout(workout_id, skip, limit)
 
 @router.delete("/{exercise_workout_id}")

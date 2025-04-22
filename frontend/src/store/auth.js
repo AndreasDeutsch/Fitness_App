@@ -53,8 +53,8 @@ export const useAuthStore = defineStore('auth', () => {
                 console.log(Date.now());    
 
                 if (isAuthenticated.value){
-                    router.push('/profile');
-                    console.log('pushed to profile');
+                    router.push('/workout');
+                    console.log('pushed to workout');
                 }
 
             }, 1000);

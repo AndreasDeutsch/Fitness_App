@@ -20,9 +20,9 @@ class WorkoutCRUD:
         workout = result.scalars().first()
         return workout
 
-    async def get_workouts(self, skip: int = 0, limit: int = 10) -> List[workout_schema.Base]:
+    async def get_workouts(self, user_id: int, skip: int = 0, limit: int = 10) -> List[workout_schema.Base]:
         #stmt = select(WorkoutModels).offset(skip).limit(limit).join(WorkoutModels.workout_spots)
-        stmt = select(WorkoutModels).offset(skip).limit(limit).order_by(WorkoutModels.start_datetime.desc())
+        stmt = select(WorkoutModels).where(WorkoutModels.user_id == user_id).offset(skip).limit(limit).order_by(WorkoutModels.start_datetime.desc())
         result = await self.db_session.execute(stmt)
         workouts = result.scalars().all()
         return workouts
@@ -42,3 +42,15 @@ class WorkoutCRUD:
         stmt.execution_options(synchronize_session="fetch")
         await self.db_session.execute(stmt)
         await self.db_session.commit()
+
+
+    async def end_workout(self, workout_id: int, workout_end_datetime: datetime):
+        workout = await self.get_workout_by_id(workout_id)
+        if workout is None:
+            return None
+        stmt = update(WorkoutModels).where(WorkoutModels.workout_id == workout_id).values(end_datetime=workout_end_datetime.replace(tzinfo=None))
+        stmt.execution_options(synchronize_session="fetch")
+        await self.db_session.execute(stmt)
+        new_workout = await self.get_workout_by_id(workout_id)
+        await self.db_session.commit()
+        return new_workout

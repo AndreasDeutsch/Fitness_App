@@ -5,8 +5,10 @@
       <p>{{ workout.description }}</p>
       <div v-for="exercise in sortedExerciseWorkout" :key="exercise.exercise_workout_id" class="mt-3" style="border: 1px solid #ccc; padding: 10px;">
         <div class="d-flex justify-content-between align-items-center">
-          <h3>{{ getExerciseName(exercise.exercise_id) }}</h3>
-          <button v-if="exercise.sets.length === 0" type="button" class="btn btn-danger" v-on:click="deleteExerciseWorkout(exercise.exercise_workout_id)">Delete Exercise</button>
+          <h3>{{ getExerciseName(exercise.exercise_id) }} </h3>
+          <h4>Aktive Zeit: {{ getTimeFormatted(exercise.active_time) }}</h4>
+          <h4>Pausenzeit: {{ getTimeFormatted(calculateBreakTime(exercise.start_time, exercise.end_time, exercise.active_time)) }}</h4>
+          <button v-if="exercise.sets && exercise.sets.length === 0" type="button" class="btn btn-danger" v-on:click="deleteExerciseWorkout(exercise.exercise_workout_id)">Delete Exercise</button>
         </div>
         <ul class="list-group">
           <li class="list-group-item d-flex justify-content-between align-items-center" v-for="set in exercise.sets" :key="set.set_id" style="margin: 10px; border: 1px solid #ccc; padding: 10px;">
@@ -14,18 +16,28 @@
               Set ID: {{ set.set_id }}, Reps: {{ set.reps }}, Weight: {{ set.weight }}, Start Time: {{ formatDate(set.start_time) }}, End Time: {{ formatDate(set.end_time) }}
               <button v-if="!set.reps || !set.weight || !set.end_time" type="button" class="btn btn-primary mt-2" v-on:click="openFinishSetPopup(set.set_id)">Finish Set</button>
             </div>
-            <button type="button" class="btn btn-danger" v-on:click="deleteSet(set.set_id)">Delete Set</button>
+            <div v-if="workout && !workout.end_datetime">
+              <button type="button" class="btn btn-danger" v-on:click="deleteSet(set.set_id)">Delete Set</button>
+            </div> 
           </li>
         </ul>
-        <button type="button" class="btn btn-success mt-2" v-on:click="addSetToExercise(exercise.exercise_workout_id)">+</button>
+        <div v-if="workout && !workout.end_datetime">
+          <button type="button" class="btn btn-success mt-2" v-on:click="addSetToExercise(exercise.exercise_workout_id)">+</button>
+        </div>
       </div>
     </div>
     <div v-else>
       <p>Loading...</p>
     </div>
-    <div class="d-flex justify-content-center mt-4">
+    <div v-if="workout && !workout.end_datetime" class="d-flex justify-content-center mt-4">
       <button type="button" class="btn btn-primary" v-on:click="showPopup = true">Add Exercise</button>
     </div>
+
+    <div v-if="workout && !workout.end_datetime" class="d-flex justify-content-center mt-4">
+      <button type="button" class="btn btn-primary" @click="endWorkout">End Workout</button>
+    </div>
+
+
 
     <div v-if="showPopup" class="modal d-block" tabindex="-1">
       <div class="modal-dialog">
@@ -71,22 +83,37 @@
         </div>
       </div>
     </div>
+
+    <div v-if="workout && exerciseWorkout.length > 0" class="mt-5">
+      <h3>Workout Summary</h3>
+      <p>Total Active Time: {{ getTimeFormatted(totalActiveTime) }}</p>
+      <p>Total Break Time: {{ getTimeFormatted(totalBreakTime) }}</p>
+      <p>Workout Traininganteil: {{ isNaN((totalActiveTime / (totalActiveTime + totalBreakTime)) * 100) ? 0 : ((totalActiveTime / (totalActiveTime + totalBreakTime)) * 100).toFixed(2) }}%</p>
+    </div>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { apiGetSpecificWorkout } from '../api/workout';
+import { useRoute, useRouter } from 'vue-router';
+import { apiGetSpecificWorkout, apiEndWorkout } from '../api/workout';
 import { apiGetExercise, apiPostExercise } from '../api/exercise';
 import { apiPostExerciseWorkout, apiGetExerciseWorkoutByWorkout, apiDeleteExerciseWorkout } from '../api/exercise_workout';
 import { apiFinishSet, apiAddSet, apiDeleteSet } from '../api/set';
 import { getCookie } from '../utils/cookies';  
+import { useAuthStore } from '../store/auth';
 
 export default {
   name: 'SpecificWorkoutView',
   setup() {
     const route = useRoute();
+    const router = useRouter();
+    const auth = useAuthStore();
+
+    if (!auth.isAuthenticated) {
+        router.push('/login');
+    }
+
     const workout = ref(null);
     const showPopup = ref(false);
     const showAddNewExercise = ref(false);
@@ -100,6 +127,23 @@ export default {
 
     const sortedExerciseWorkout = computed(() => {
       return exerciseWorkout.value.slice().sort((a, b) => a.workout_spot_number - b.workout_spot_number);
+    });
+
+    const totalActiveTime = computed(() => {
+      return exerciseWorkout.value.reduce((sum, exercise) => sum + (exercise.active_time || 0), 0);
+    });
+
+    const totalBreakTime = computed(() => {
+      if (exerciseWorkout.value.length === 0) return 0;
+
+      const startTimes = exerciseWorkout.value.map(ex => new Date(ex.start_time).getTime());
+      const endTimes = exerciseWorkout.value.map(ex => new Date(ex.end_time).getTime());
+
+      const earliestStart = Math.min(...startTimes);
+      const latestEnd = Math.max(...endTimes);
+
+      const totalDuration = (latestEnd - earliestStart) / 1000;
+      return Math.max(0, totalDuration - totalActiveTime.value);
     });
 
     const addNewExercise = () => {
@@ -128,6 +172,17 @@ export default {
         showPopup.value = false;
       } catch (error) {
         console.error('Error adding workout spot:', error);
+      }
+    };
+
+    const endWorkout = async () => {
+      try {
+        const workoutId = route.params.id;
+        await apiEndWorkout({workout_id: workoutId, end_datetime: new Date().toISOString()});
+        const response = await apiGetSpecificWorkout(workoutId);
+        workout.value = response.data;
+      } catch (error) {
+        console.error('Error ending workout:', error);
       }
     };
 
@@ -192,10 +247,31 @@ export default {
       return exercise ? exercise.name : 'Unknown Exercise';
     };
 
+    const getTimeFormatted = (time) => {
+      const days = Math.floor(time / 86400);
+      const hours = Math.floor((time % 86400) / 3600);
+      const minutes = Math.floor((time % 3600) / 60);
+      const seconds = Math.floor(time % 60);
+
+      let formattedTime = '';
+      if (days > 0) formattedTime += `${days}d `;
+      if (hours > 0) formattedTime += `${hours}h `;
+      formattedTime += `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+
+      return formattedTime.trim();
+    };
+
     const formatDate = (dateString) => {
       if (!dateString) return 'N/A';
       const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
       return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    const calculateBreakTime = (startTime, endTime, activeTime) => {
+      if (!startTime || !endTime) return 0;
+      const start = new Date(startTime).getTime();
+      const end = new Date(endTime).getTime();
+      return Math.max(0, (end - start) / 1000 - activeTime);
     };
 
     onMounted(async () => {
@@ -235,7 +311,12 @@ export default {
       deleteExerciseWorkout,
       getExerciseName,
       formatDate,
-      sortedExerciseWorkout
+      sortedExerciseWorkout,
+      getTimeFormatted,
+      calculateBreakTime,
+      totalActiveTime,
+      totalBreakTime,
+      endWorkout
     };
   },
 };

@@ -28,6 +28,15 @@
 <script setup>
 import { apiGetWorkouts, apiPostWorkout } from '../api/workout';
 import { onMounted, ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../store/auth';
+
+const router = useRouter();
+const auth = useAuthStore();
+
+if (!auth.isAuthenticated) {
+    router.push('/login');
+}
 
 const getCookie = (name) => {
     const match = document.cookie.split('; ').find(row => row.startsWith(name + '='));
@@ -46,7 +55,8 @@ const form = ref({
 
 onMounted(async () => {
     try {
-        const response = await apiGetWorkouts();
+        const user_id = getCookie('user_id');
+        const response = await apiGetWorkouts(user_id);
         workouts.value = response.data;
     } catch (error) {
         console.error('Error fetching workouts:', error);
@@ -54,10 +64,15 @@ onMounted(async () => {
 });
 
 const add_workout = async () => {
+    if (!form.value.name.trim()) {
+        console.error('Workout name cannot be empty.');
+        return;
+    }
     try {
         const response = await apiPostWorkout(form.value); 
         if (response.status === 200){
-            const response_get = await apiGetWorkouts();
+            const user_id = getCookie('user_id');
+            const response_get = await apiGetWorkouts(user_id);
             workouts.value = response_get.data;
         }
         else {
